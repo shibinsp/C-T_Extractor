@@ -65,7 +65,7 @@ class RssConverter(DocumentConverter):
         try:
             doc = minidom.parse(file_stream)
             return self._feed_type(doc) is not None
-        except BaseException as _:
+        except Exception:
             pass
         finally:
             file_stream.seek(cur_pos)
@@ -174,7 +174,7 @@ class RssConverter(DocumentConverter):
             # using bs4 because many RSS feeds have HTML-styled content
             soup = BeautifulSoup(content, "html.parser")
             return _CustomMarkdownify(**self._kwargs).convert_soup(soup)
-        except BaseException as _:
+        except Exception:
             return content
 
     def _get_data_by_tag_name(
