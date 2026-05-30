@@ -60,7 +60,8 @@ class BingSerpConverter(DocumentConverter):
         stream_info: StreamInfo,
         **kwargs: Any,  # Options to pass to the converter
     ) -> DocumentConverterResult:
-        assert stream_info.url is not None
+        if stream_info.url is None:
+            raise ValueError("BingSerpConverter requires a URL in stream_info")
 
         # Parse the query parameters
         parsed_params = parse_qs(urlparse(stream_info.url).query)
