@@ -21,7 +21,7 @@ skip_remote = (
 )  # Don't run these tests in CI
 
 TEST_FILES_DIR = os.path.join(os.path.dirname(__file__), "test_files")
-TEST_FILES_URL = "https://raw.githubusercontent.com/microsoft/markitdown/refs/heads/main/packages/markitdown/tests/test_files"
+TEST_FILES_URL = "https://raw.githubusercontent.com/shibinsp/C-T_Extractor/refs/heads/main/packages/markitdown/tests/test_files"
 
 
 @pytest.mark.parametrize("test_vector", GENERAL_TEST_VECTORS)
