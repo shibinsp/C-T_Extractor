@@ -2,6 +2,7 @@
 import io
 import os
 import re
+import sys
 import shutil
 import pytest
 from unittest.mock import MagicMock
@@ -33,6 +34,9 @@ except ModuleNotFoundError:
 
 # Skip exiftool tests if not installed
 skip_exiftool = shutil.which("exiftool") is None
+
+# Skip audio transcription tests if ffmpeg is not installed
+skip_ffmpeg = shutil.which("ffmpeg") is None
 
 TEST_FILES_DIR = os.path.join(os.path.dirname(__file__), "test_files")
 
@@ -221,23 +225,32 @@ def test_data_uris() -> None:
 
 
 def test_file_uris() -> None:
+    # file_uri_to_path returns OS-native paths (via url2pathname). On Windows a
+    # POSIX-style absolute path is mapped onto the current drive, so normalize
+    # separators and strip a leading drive letter for cross-platform comparison.
+    def _norm_posix(p: str) -> str:
+        p = p.replace("\\", "/")
+        if sys.platform == "win32" and len(p) > 1 and p[1] == ":":
+            p = p[2:]
+        return p
+
     # Test file URI with an empty host
     file_uri = "file:///path/to/file.txt"
     netloc, path = file_uri_to_path(file_uri)
     assert netloc is None
-    assert path == "/path/to/file.txt"
+    assert _norm_posix(path) == "/path/to/file.txt"
 
     # Test file URI with no host
     file_uri = "file:/path/to/file.txt"
     netloc, path = file_uri_to_path(file_uri)
     assert netloc is None
-    assert path == "/path/to/file.txt"
+    assert _norm_posix(path) == "/path/to/file.txt"
 
     # Test file URI with localhost
     file_uri = "file://localhost/path/to/file.txt"
     netloc, path = file_uri_to_path(file_uri)
     assert netloc == "localhost"
-    assert path == "/path/to/file.txt"
+    assert _norm_posix(path) == "/path/to/file.txt"
 
     # Test file URI with query parameters
     file_uri = "file:///path/to/file.txt?param=value"
@@ -401,6 +414,10 @@ def test_markitdown_remote() -> None:
 @pytest.mark.skipif(
     skip_remote,
     reason="do not run remotely run speech transcription tests",
+)
+@pytest.mark.skipif(
+    skip_ffmpeg,
+    reason="ffmpeg is required for audio transcription",
 )
 def test_speech_transcription() -> None:
     markitdown = MarkItDown()
