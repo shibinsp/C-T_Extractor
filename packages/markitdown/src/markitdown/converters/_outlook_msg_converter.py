@@ -1,8 +1,11 @@
+import logging
 import sys
 from typing import Any, Union, BinaryIO
 from .._stream_info import StreamInfo
 from .._base_converter import DocumentConverter, DocumentConverterResult
 from .._exceptions import MissingDependencyException, MISSING_DEPENDENCY_MESSAGE
+
+logger = logging.getLogger(__name__)
 
 # Try loading optional (but in this case, required) dependencies
 # Save reporting of any exceptions for later
@@ -54,7 +57,7 @@ class OutlookMsgConverter(DocumentConverter):
         finally:
             file_stream.seek(cur_pos)
 
-        # Brue force, check if it's an Outlook file
+        # Brute force, check if it's an Outlook file
         try:
             if olefile is not None:
                 msg = olefile.OleFileIO(file_stream)
@@ -64,7 +67,7 @@ class OutlookMsgConverter(DocumentConverter):
                     and "__recip_version1.0_#00000000" in toc
                 )
         except Exception as e:
-            pass
+            logger.debug(f"OLE file check failed: {e}")
         finally:
             file_stream.seek(cur_pos)
 
@@ -90,9 +93,8 @@ class OutlookMsgConverter(DocumentConverter):
                 _dependency_exc_info[2]
             )
 
-        assert (
-            olefile is not None
-        )  # If we made it this far, olefile should be available
+        if olefile is None:
+            raise RuntimeError("olefile is not available despite passing dependency check")
         msg = olefile.OleFileIO(file_stream)
 
         # Extract email metadata
@@ -126,10 +128,8 @@ class OutlookMsgConverter(DocumentConverter):
 
     def _get_stream_data(self, msg: Any, stream_path: str) -> Union[str, None]:
         """Helper to safely extract and decode stream data from the MSG file."""
-        assert olefile is not None
-        assert isinstance(
-            msg, olefile.OleFileIO
-        )  # Ensure msg is of the correct type (type hinting is not possible with the optional olefile package)
+        if olefile is None or not isinstance(msg, olefile.OleFileIO):
+            raise RuntimeError("Invalid msg object passed to _get_stream_data")
 
         try:
             if msg.exists(stream_path):
