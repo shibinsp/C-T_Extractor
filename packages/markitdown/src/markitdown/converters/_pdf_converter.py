@@ -534,7 +534,8 @@ class PdfConverter(DocumentConverter):
                 _dependency_exc_info[2]
             )  # type: ignore[union-attr]
 
-        assert isinstance(file_stream, io.IOBase)
+        if not isinstance(file_stream, io.IOBase):
+            raise TypeError(f"Expected a file-like object, got {type(file_stream).__name__}")
 
         # Read file stream into BytesIO for compatibility with pdfplumber
         pdf_bytes = io.BytesIO(file_stream.read())
