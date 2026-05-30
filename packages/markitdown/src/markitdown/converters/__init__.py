@@ -1,7 +1,4 @@
-# SPDX-FileCopyrightText: 2024-present Adam Fourney <adamfo@microsoft.com>
-#
-# SPDX-License-Identifier: MIT
-
+﻿#
 from ._plain_text_converter import PlainTextConverter
 from ._html_converter import HtmlConverter
 from ._rss_converter import RssConverter

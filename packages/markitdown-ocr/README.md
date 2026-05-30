@@ -1,4 +1,4 @@
-# MarkItDown OCR Plugin
+# T&C Extractor OCR Plugin
 
 LLM Vision plugin for MarkItDown that extracts text from images embedded in PDF, DOCX, PPTX, and XLSX files.
 
@@ -177,14 +177,14 @@ pytest tests/ -v
 ### Building from Source
 
 ```bash
-git clone https://github.com/microsoft/markitdown.git
+git clone <repo-url>
 cd markitdown/packages/markitdown-ocr
 pip install -e .
 ```
 
 ## Contributing
 
-Contributions are welcome! See the [MarkItDown repository](https://github.com/microsoft/markitdown) for guidelines.
+Contributions are welcome! See the repository for guidelines.
 
 ## License
 

@@ -10,9 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 keywords = ["markitdown", "ocr", "pdf", "docx", "xlsx", "pptx", "llm", "vision"]
-authors = [
-  { name = "Contributors", email = "noreply@github.com" },
-]
+authors = []
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -45,9 +43,6 @@ llm = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/microsoft/markitdown#readme"
-Issues = "https://github.com/microsoft/markitdown/issues"
-Source = "https://github.com/microsoft/markitdown"
 
 [tool.hatch.version]
 path = "src/markitdown_ocr/__about__.py"

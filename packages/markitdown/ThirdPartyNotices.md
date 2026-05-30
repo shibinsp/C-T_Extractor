@@ -16,8 +16,7 @@ NOTE 1: What follows is a verbatim copy of dwml's LICENSE file, as it appeared o
 placeholders for the copyright owner and year.
 
 NOTE 2: The Apache License, Version 2.0, requires that modifications to the dwml source code be documented.  
-The following section summarizes these changes. The full details are available in the MarkItDown source code 
-repository under PR #1160 (https://github.com/microsoft/markitdown/pull/1160)
+The following section summarizes these changes. The full details are available in the MarkItDown source code repository under PR #1160.
 
 This project incorporates `dwml/latex_dict.py` and `dwml/omml.py` files without any additional logic modifications (which 
 lives in `packages/markitdown/src/markitdown/converter_utils/docx/math` location). However, we have reformatted the code

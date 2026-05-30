@@ -1,8 +1,7 @@
-# MarkItDown
+# T&C Extractor
 
 [![PyPI](https://img.shields.io/pypi/v/markitdown.svg)](https://pypi.org/project/markitdown/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/markitdown)
-[![Built by AutoGen Team](https://img.shields.io/badge/Built%20by-AutoGen%20Team-blue)](https://github.com/microsoft/autogen)
 
 > [!IMPORTANT]
 > MarkItDown performs I/O with the privileges of the current process. Like open() or requests.get(), it will access resources that the process itself can access. Sanitize your inputs in untrusted environments, and call the narrowest `convert_*` function needed for your use case (e.g., `convert_stream()`, or `convert_local()`). See the [Security Considerations](#security-considerations) section of the documentation for more information.
@@ -63,7 +62,7 @@ conda activate markitdown
 To install MarkItDown, use pip: `pip install 'markitdown[all]'`. Alternatively, you can install it from the source:
 
 ```bash
-git clone git@github.com:microsoft/markitdown.git
+git clone <repo-url>
 cd markitdown
 pip install -e 'packages/markitdown[all]'
 ```
@@ -289,30 +288,7 @@ docker run --rm -i markitdown:latest < ~/your-file.pdf > output.md
 
 ## Contributing
 
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-### How to Contribute
-
-You can help by looking at issues or helping review PRs. Any issue or PR is welcome, but we have also marked some as 'open for contribution' and 'open for reviewing' to help facilitate community contributions. These are of course just suggestions and you are welcome to contribute in any way you like.
-
-<div align="center">
-
-|            | All                                                          | Especially Needs Help from Community                                                                                                      |
-| ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Issues** | [All Issues](https://github.com/microsoft/markitdown/issues) | [Issues open for contribution](https://github.com/microsoft/markitdown/issues?q=is%3Aissue+is%3Aopen+label%3A%22open+for+contribution%22) |
-| **PRs**    | [All PRs](https://github.com/microsoft/markitdown/pulls)     | [PRs open for reviewing](https://github.com/microsoft/markitdown/pulls?q=is%3Apr+is%3Aopen+label%3A%22open+for+reviewing%22)              |
-
-</div>
+Contributions are welcome. Please open issues or pull requests in the repository.
 
 ### Running Tests and Checks
 
@@ -351,10 +327,4 @@ MarkItDown performs I/O with the privileges of the current process. Like `open()
 
 You can also contribute by creating and sharing 3rd party plugins. See `packages/markitdown-sample-plugin` for more details.
 
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
