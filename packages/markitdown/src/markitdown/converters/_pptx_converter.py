@@ -1,5 +1,6 @@
 import sys
 import base64
+import logging
 import os
 import io
 import re
@@ -7,6 +8,8 @@ import html
 
 from typing import BinaryIO, Any
 from operator import attrgetter
+
+logger = logging.getLogger(__name__)
 
 from ._html_converter import HtmlConverter
 from ._llm_caption import llm_caption
@@ -124,16 +127,14 @@ class PptxConverter(DocumentConverter):
                                 model=llm_model,
                                 prompt=kwargs.get("llm_prompt"),
                             )
-                        except Exception:
-                            # Unable to generate a description
-                            pass
+                        except Exception as e:
+                            logger.debug(f"Unable to generate LLM description for shape: {e}")
 
                     # Also grab any description embedded in the deck
                     try:
                         alt_text = shape._element._nvXxPr.cNvPr.attrib.get("descr", "")
-                    except Exception:
-                        # Unable to get alt text
-                        pass
+                    except Exception as e:
+                        logger.debug(f"Unable to get alt text for shape: {e}")
 
                     # Prepare the alt, escaping any special characters
                     alt_text = "\n".join([llm_description, alt_text]) or shape.name
