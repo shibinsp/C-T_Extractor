@@ -33,7 +33,7 @@ dependencies = [
 [project.optional-dependencies]
 all = [
   "python-pptx",
-  "mammoth~=1.11.0",
+  "mammoth>=1.11,<1.13",
   "pandas",
   "openpyxl",
   "xlrd",
@@ -49,7 +49,7 @@ all = [
   "azure-identity",
 ]
 pptx = ["python-pptx"]
-docx = ["mammoth~=1.11.0", "lxml"]
+docx = ["mammoth>=1.11,<1.13", "lxml"]
 xlsx = ["pandas", "openpyxl"]
 xls = ["pandas", "xlrd"]
 pdf = ["pdfminer.six>=20251230", "pdfplumber>=0.11.9"]
