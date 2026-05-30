@@ -1,18 +1,20 @@
 # T&C Extractor Sample Plugin
 
-[![PyPI](https://img.shields.io/pypi/v/markitdown-sample-plugin.svg)](https://pypi.org/project/markitdown-sample-plugin/)
-![PyPI - Downloads](https://img.shields.io/pypi/dd/markitdown-sample-plugin)
+A template for building custom converter plugins for T&C Extractor.
 
+## How Plugins Work
 
-This project shows how to create a sample plugin for MarkItDown. The most important parts are as follows:
+Plugins register custom `DocumentConverter` implementations that T&C Extractor discovers automatically via Python entry points when `enable_plugins=True` is set.
 
-Next, implement your custom DocumentConverter:
+## Building a Plugin
+
+### 1. Implement a DocumentConverter
 
 ```python
 from typing import BinaryIO, Any
 from markitdown import MarkItDown, DocumentConverter, DocumentConverterResult, StreamInfo
 
-class RtfConverter(DocumentConverter):
+class MyConverter(DocumentConverter):
 
     def __init__(
         self, priority: float = DocumentConverter.PRIORITY_SPECIFIC_FILE_FORMAT
@@ -25,11 +27,8 @@ class RtfConverter(DocumentConverter):
         stream_info: StreamInfo,
         **kwargs: Any,
     ) -> bool:
-	
-	# Implement logic to check if the file stream is an RTF file
-	# ...
-	raise NotImplementedError()
-
+        # Return True if this converter can handle the given file
+        return stream_info.extension in [".myext"]
 
     def convert(
         self,
@@ -37,67 +36,59 @@ class RtfConverter(DocumentConverter):
         stream_info: StreamInfo,
         **kwargs: Any,
     ) -> DocumentConverterResult:
-
-	# Implement logic to convert the file stream to Markdown
-	# ...
-	raise NotImplementedError()
+        # Read the stream and return Markdown content
+        content = file_stream.read().decode("utf-8")
+        return DocumentConverterResult(markdown=content)
 ```
 
-Next, make sure your package implements and exports the following:
+### 2. Export the Plugin Interface
 
 ```python
-# The version of the plugin interface that this plugin uses. 
-# The only supported version is 1 for now.
-__plugin_interface_version__ = 1 
+# Required: plugin interface version (only version 1 is supported)
+__plugin_interface_version__ = 1
 
-# The main entrypoint for the plugin. This is called each time MarkItDown instances are created.
 def register_converters(markitdown: MarkItDown, **kwargs):
-    """
-    Called during construction of MarkItDown instances to register converters provided by plugins.
-    """
-
-    # Simply create and attach an RtfConverter instance
-    markitdown.register_converter(RtfConverter())
+    """Called each time a MarkItDown instance is created."""
+    markitdown.register_converter(MyConverter())
 ```
 
-
-Finally, create an entrypoint in the `pyproject.toml` file:
+### 3. Register the Entry Point in pyproject.toml
 
 ```toml
 [project.entry-points."markitdown.plugin"]
-sample_plugin = "markitdown_sample_plugin"
+my_plugin = "my_package_name"
 ```
 
-Here, the value of `sample_plugin` can be any key, but should ideally be the name of the plugin. The value is the fully qualified name of the package implementing the plugin.
-
-
 ## Installation
-
-To use the plugin with MarkItDown, it must be installed. To install the plugin from the current directory use:
 
 ```bash
 pip install -e .
 ```
 
-Once the plugin package is installed, verify that it is available to MarkItDown by running:
+Verify the plugin is discovered:
 
 ```bash
 markitdown --list-plugins
 ```
 
-To use the plugin for a conversion use the `--use-plugins` flag. For example, to convert an RTF file:
+## Usage
+
+Command-line:
 
 ```bash
-markitdown --use-plugins path-to-file.rtf
+markitdown --use-plugins path-to-file.myext
 ```
 
-In Python, plugins can be enabled as follows:
+Python:
 
 ```python
 from markitdown import MarkItDown
 
-md = MarkItDown(enable_plugins=True) 
-result = md.convert("path-to-file.rtf")
+md = MarkItDown(enable_plugins=True)
+result = md.convert("path-to-file.myext")
 print(result.text_content)
 ```
 
+## License
+
+MIT — see [LICENSE](../markitdown/LICENSE).

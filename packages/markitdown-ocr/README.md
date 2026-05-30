@@ -1,27 +1,22 @@
 # T&C Extractor OCR Plugin
 
-LLM Vision plugin for MarkItDown that extracts text from images embedded in PDF, DOCX, PPTX, and XLSX files.
+LLM Vision OCR plugin for T&C Extractor that extracts text from images embedded in PDF, DOCX, PPTX, and XLSX files — including full-page OCR for scanned documents.
 
-Uses the same `llm_client` / `llm_model` pattern that MarkItDown already supports for image descriptions — no new ML libraries or binary dependencies required.
+Uses the same `llm_client` / `llm_model` pattern as T&C Extractor's built-in image descriptions. No new ML libraries or binary dependencies required.
 
 ## Features
 
-- **Enhanced PDF Converter**: Extracts text from images within PDFs, with full-page OCR fallback for scanned documents
-- **Enhanced DOCX Converter**: OCR for images in Word documents
-- **Enhanced PPTX Converter**: OCR for images in PowerPoint presentations
-- **Enhanced XLSX Converter**: OCR for images in Excel spreadsheets
-- **Context Preservation**: Maintains document structure and flow when inserting extracted text
+- **PDF**: Inline OCR for embedded images; full-page fallback for scanned PDFs
+- **DOCX**: OCR for images in Word documents
+- **PPTX**: OCR for images in PowerPoint presentations
+- **XLSX**: OCR for images embedded in Excel spreadsheets
+- **Structure-preserving**: Document flow (headings, tables, paragraphs) is maintained around OCR blocks
 
 ## Installation
 
 ```bash
 pip install markitdown-ocr
-```
-
-The plugin uses whatever OpenAI-compatible client you already have. Install one if you don't have it yet:
-
-```bash
-pip install openai
+pip install openai  # or any OpenAI-compatible client
 ```
 
 ## Usage
@@ -34,8 +29,6 @@ markitdown document.pdf --use-plugins --llm-client openai --llm-model gpt-4o
 
 ### Python API
 
-Pass `llm_client` and `llm_model` to `MarkItDown()` exactly as you would for image descriptions:
-
 ```python
 from markitdown import MarkItDown
 from openai import OpenAI
@@ -45,29 +38,24 @@ md = MarkItDown(
     llm_client=OpenAI(),
     llm_model="gpt-4o",
 )
-
-result = md.convert("document_with_images.pdf")
+result = md.convert("scanned-terms.pdf")
 print(result.text_content)
 ```
 
-If no `llm_client` is provided the plugin still loads, but OCR is silently skipped — falling back to the standard built-in converter.
+If no `llm_client` is provided the plugin loads but OCR is silently skipped, falling back to the built-in converter.
 
 ### Custom Prompt
-
-Override the default extraction prompt for specialized documents:
 
 ```python
 md = MarkItDown(
     enable_plugins=True,
     llm_client=OpenAI(),
     llm_model="gpt-4o",
-    llm_prompt="Extract all text from this image, preserving table structure.",
+    llm_prompt="Extract all text, preserving table structure.",
 )
 ```
 
-### Any OpenAI-Compatible Client
-
-Works with any client that follows the OpenAI API:
+### Azure OpenAI
 
 ```python
 from openai import AzureOpenAI
@@ -85,96 +73,52 @@ md = MarkItDown(
 
 ## How It Works
 
-When `MarkItDown(enable_plugins=True, llm_client=..., llm_model=...)` is called:
-
-1. MarkItDown discovers the plugin via the `markitdown.plugin` entry point group
-2. It calls `register_converters()`, forwarding all kwargs including `llm_client` and `llm_model`
-3. The plugin creates an `LLMVisionOCRService` from those kwargs
-4. Four OCR-enhanced converters are registered at **priority -1.0** — before the built-in converters at priority 0.0
+1. T&C Extractor discovers the plugin via the `markitdown.plugin` entry point
+2. `register_converters()` is called with `llm_client` and `llm_model`
+3. An `LLMVisionOCRService` is created from those kwargs
+4. Four OCR-enhanced converters register at **priority -1.0** (before built-ins at 0.0)
 
 When a file is converted:
+1. The OCR converter extracts embedded images from the document
+2. Each image is sent to the LLM with an extraction prompt
+3. Returned text is inserted inline, preserving document structure
+4. If an LLM call fails, conversion continues without that image's text
 
-1. The OCR converter accepts the file
-2. It extracts embedded images from the document
-3. Each image is sent to the LLM with an extraction prompt
-4. The returned text is inserted inline, preserving document structure
-5. If the LLM call fails, conversion continues without that image's text
+## Output Format
 
-## Supported File Formats
+Every OCR block is wrapped as:
 
-### PDF
-
-- Embedded images are extracted by position (via `page.images` / page XObjects) and OCR'd inline, interleaved with the surrounding text in vertical reading order.
-- **Scanned PDFs** (pages with no extractable text) are detected automatically: each page is rendered at 300 DPI and sent to the LLM as a full-page image.
-- **Malformed PDFs** that pdfplumber/pdfminer cannot open (e.g. truncated EOF) are retried with PyMuPDF page rendering, so content is still recovered.
-
-### DOCX
-
-- Images are extracted via document part relationships (`doc.part.rels`).
-- OCR is run before the DOCX→HTML→Markdown pipeline executes: placeholder tokens are injected into the HTML so that the markdown converter does not escape the OCR markers, and the final placeholders are replaced with the formatted `*[Image OCR]...[End OCR]*` blocks after conversion.
-- Document flow (headings, paragraphs, tables) is fully preserved around the OCR blocks.
-
-### PPTX
-
-- Picture shapes, placeholder shapes with images, and images inside groups are all supported.
-- Shapes are processed in top-to-left reading order per slide.
-- If an `llm_client` is configured, the LLM is asked for a description first; OCR is used as the fallback when no description is returned.
-
-### XLSX
-
-- Images embedded in worksheets (`sheet._images`) are extracted per sheet.
-- Cell position is calculated from the image anchor coordinates (column/row → Excel letter notation).
-- Images are listed under a `### Images in this sheet:` section after the sheet's data table — they are not interleaved into the table rows.
-
-### Output format
-
-Every extracted OCR block is wrapped as:
-
-```text
+```
 *[Image OCR]
 <extracted text>
 [End OCR]*
 ```
 
+## Supported Format Details
+
+| Format | Behaviour |
+|---|---|
+| **PDF** | Inline image OCR; full-page 300 DPI render for scanned pages; PyMuPDF fallback for malformed PDFs |
+| **DOCX** | OCR via `doc.part.rels`; placeholder injection preserves heading/table flow |
+| **PPTX** | Picture shapes, placeholder images, and group images; top-to-left reading order per slide |
+| **XLSX** | Per-sheet image extraction via `sheet._images`; listed after sheet data table |
+
 ## Troubleshooting
 
-### OCR text missing from output
+**OCR text missing** — verify `llm_client` and `llm_model` are both set.
 
-The most likely cause is a missing `llm_client` or `llm_model`. Verify:
+**Plugin not loading** — run `markitdown --list-plugins` and confirm `ocr` is listed.
 
-```python
-from openai import OpenAI
-from markitdown import MarkItDown
-
-md = MarkItDown(
-    enable_plugins=True,
-    llm_client=OpenAI(),   # required
-    llm_model="gpt-4o",    # required
-)
-```
-
-### Plugin not loading
-
-Confirm the plugin is installed and discovered:
-
-```bash
-markitdown --list-plugins   # should show: ocr
-```
-
-### API errors
-
-The plugin propagates LLM API errors as warnings and continues conversion. Check your API key, quota, and that the chosen model supports vision inputs.
+**API errors** — the plugin logs warnings and continues. Check your API key, quota, and that the model supports vision.
 
 ## Development
-
-### Running Tests
 
 ```bash
 cd packages/markitdown-ocr
 pytest tests/ -v
 ```
 
-### Building from Source
+Build from source:
 
 ```bash
 git clone <repo-url>
@@ -184,17 +128,8 @@ pip install -e .
 
 ## Contributing
 
-Contributions are welcome! See the repository for guidelines.
+Contributions are welcome. See the repository for guidelines.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-## Changelog
-
-### 0.1.0 (Initial Release)
-
-- LLM Vision OCR for PDF, DOCX, PPTX, XLSX
-- Full-page OCR fallback for scanned PDFs
-- Context-aware inline text insertion
-- Priority-based converter replacement (no code changes required)
