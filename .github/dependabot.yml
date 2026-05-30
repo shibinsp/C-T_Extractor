@@ -4,3 +4,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/packages/markitdown"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/packages/markitdown-mcp"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/packages/markitdown-ocr"
+    schedule:
+      interval: "weekly"
