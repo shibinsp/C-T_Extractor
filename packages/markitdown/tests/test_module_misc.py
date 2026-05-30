@@ -346,7 +346,8 @@ def test_doc_rlink() -> None:
     docx_file = os.path.join(TEST_FILES_DIR, "rlink.docx")
 
     # Directory containing the target rlink file
-    rlink_tmp_dir = os.path.abspath(os.sep + "tmp")
+    import tempfile
+    rlink_tmp_dir = tempfile.gettempdir()
 
     # Ensure the tmp directory exists
     if not os.path.exists(rlink_tmp_dir):
