@@ -80,7 +80,8 @@ class HtmlConverter(DocumentConverter):
             target = body_elm if body_elm else soup
             webpage_text = target.get_text("\n", strip=True)
 
-        assert isinstance(webpage_text, str)
+        if not isinstance(webpage_text, str):
+            webpage_text = ""
 
         # remove leading and trailing \n
         webpage_text = webpage_text.strip()
