@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 import re
 import bs4
@@ -7,6 +8,8 @@ from urllib.parse import parse_qs, urlparse, unquote
 
 from .._base_converter import DocumentConverter, DocumentConverterResult
 from .._stream_info import StreamInfo
+
+logger = logging.getLogger(__name__)
 
 # Optional YouTube transcription support
 try:
@@ -112,14 +115,14 @@ class YouTubeConverter(DocumentConverter):
                             metadata["description"] = str(attrdesc.get("content", ""))
                     break
         except Exception as e:
-            print(f"Error extracting description: {e}")
-            pass
+            logger.warning(f"Error extracting description: {e}")
 
         # Start preparing the page
         webpage_text = "# YouTube\n"
 
         title = self._get(metadata, ["title", "og:title", "name"])  # type: ignore
-        assert isinstance(title, str)
+        if not isinstance(title, str):
+            title = ""
 
         if title:
             webpage_text += f"\n## {title}\n"
@@ -176,7 +179,7 @@ class YouTubeConverter(DocumentConverter):
                 except Exception as e:
                     # No transcript available
                     if len(languages) == 1:
-                        print(f"Error fetching transcript: {e}")
+                        logger.warning(f"Error fetching transcript: {e}")
                     else:
                         # Translate transcript into first kwarg
                         transcript = (
@@ -189,7 +192,8 @@ class YouTubeConverter(DocumentConverter):
                 webpage_text += f"\n### Transcript\n{transcript_text}\n"
 
         title = title if title else (soup.title.string if soup.title else "")
-        assert isinstance(title, str)
+        if not isinstance(title, str):
+            title = ""
 
         return DocumentConverterResult(
             markdown=webpage_text,
@@ -230,7 +234,7 @@ class YouTubeConverter(DocumentConverter):
             try:
                 return operation()  # Attempt the operation
             except Exception as e:
-                print(f"Attempt {attempt + 1} failed: {e}")
+                logger.warning(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < retries - 1:
                     time.sleep(delay)  # Wait before retrying
                 attempt += 1
