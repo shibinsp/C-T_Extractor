@@ -122,10 +122,10 @@ class MarkItDown:
 
         # TODO - remove these (see enable_builtins)
         self._llm_client: Any = None
-        self._llm_model: Union[str | None] = None
-        self._llm_prompt: Union[str | None] = None
-        self._exiftool_path: Union[str | None] = None
-        self._style_map: Union[str | None] = None
+        self._llm_model: str | None = None
+        self._llm_prompt: str | None = None
+        self._exiftool_path: str | None = None
+        self._style_map: str | None = None
 
         # Register the converters
         self._converters: List[ConverterRegistration] = []
