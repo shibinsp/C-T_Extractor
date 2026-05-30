@@ -17,6 +17,12 @@ ACCEPTED_MIME_TYPE_PREFIXES = [
 
 ACCEPTED_FILE_EXTENSIONS = [".epub"]
 
+# Guard against decompression bombs. An EPUB is a zip archive; a small malicious
+# file can declare gigabytes of decompressed content. Reject archives whose total
+# declared decompressed size, or whose per-member compression ratio, is implausible.
+MAX_TOTAL_DECOMPRESSED_SIZE = 500 * 1024 * 1024  # 500 MB across the whole archive
+MAX_COMPRESSION_RATIO = 200  # decompressed:compressed ratio per member
+
 MIME_TYPE_MAPPING = {
     ".html": "text/html",
     ".xhtml": "application/xhtml+xml",
@@ -57,6 +63,9 @@ class EpubConverter(HtmlConverter):
         **kwargs: Any,  # Options to pass to the converter
     ) -> DocumentConverterResult:
         with zipfile.ZipFile(file_stream, "r") as z:
+            # Reject decompression bombs before reading any member content.
+            self._check_for_zip_bomb(z)
+
             # Extracts metadata (title, authors, language, publisher, date, description, cover) from an EPUB file."""
 
             # Locate content.opf
@@ -128,6 +137,26 @@ class EpubConverter(HtmlConverter):
             return DocumentConverterResult(
                 markdown="\n\n".join(markdown_content), title=metadata["title"]
             )
+
+    @staticmethod
+    def _check_for_zip_bomb(z: zipfile.ZipFile) -> None:
+        """Raise ValueError if the archive looks like a decompression bomb."""
+        total = 0
+        for info in z.infolist():
+            total += info.file_size
+            if total > MAX_TOTAL_DECOMPRESSED_SIZE:
+                raise ValueError(
+                    "EPUB exceeds the maximum total decompressed size "
+                    f"({MAX_TOTAL_DECOMPRESSED_SIZE} bytes); refusing to extract."
+                )
+            if (
+                info.compress_size > 0
+                and info.file_size / info.compress_size > MAX_COMPRESSION_RATIO
+            ):
+                raise ValueError(
+                    f"EPUB member '{info.filename}' has a suspicious compression "
+                    f"ratio ({info.file_size}:{info.compress_size}); refusing to extract."
+                )
 
     def _get_text_from_node(self, dom: Document, tag_name: str) -> str | None:
         """Convenience function to extract a single occurrence of a tag (e.g., title)."""
