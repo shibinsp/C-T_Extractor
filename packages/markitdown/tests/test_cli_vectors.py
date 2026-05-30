@@ -44,6 +44,10 @@ def shared_tmp_dir(tmp_path_factory):
 def test_output_to_stdout(shared_tmp_dir, test_vector) -> None:
     """Test that the CLI outputs to stdout correctly."""
 
+    # Force UTF-8 in the child process and when decoding its output so that
+    # non-ASCII content (e.g. CJK text) is not mangled on platforms whose
+    # default stdio encoding is not UTF-8 (e.g. Windows cp1252).
+    env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     result = subprocess.run(
         [
             "python",
@@ -53,6 +57,8 @@ def test_output_to_stdout(shared_tmp_dir, test_vector) -> None:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        env=env,
     )
 
     assert result.returncode == 0, f"CLI exited with error: {result.stderr}"
