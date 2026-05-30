@@ -256,13 +256,13 @@ def test_file_uris() -> None:
     file_uri = "file:///path/to/file.txt?param=value"
     netloc, path = file_uri_to_path(file_uri)
     assert netloc is None
-    assert path == "/path/to/file.txt"
+    assert _norm_posix(path) == "/path/to/file.txt"
 
     # Test file URI with fragment
     file_uri = "file:///path/to/file.txt#fragment"
     netloc, path = file_uri_to_path(file_uri)
     assert netloc is None
-    assert path == "/path/to/file.txt"
+    assert _norm_posix(path) == "/path/to/file.txt"
 
 
 def test_docx_comments() -> None:
