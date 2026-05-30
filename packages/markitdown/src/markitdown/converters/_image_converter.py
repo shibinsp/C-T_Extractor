@@ -1,9 +1,12 @@
-from typing import BinaryIO, Any, Union
 import base64
+import logging
 import mimetypes
+from typing import BinaryIO, Any, Union
 from ._exiftool import exiftool_metadata
 from .._base_converter import DocumentConverter, DocumentConverterResult
 from .._stream_info import StreamInfo
+
+logger = logging.getLogger(__name__)
 
 ACCEPTED_MIME_TYPE_PREFIXES = [
     "image/jpeg",
@@ -110,6 +113,7 @@ class ImageConverter(DocumentConverter):
         try:
             base64_image = base64.b64encode(file_stream.read()).decode("utf-8")
         except Exception as e:
+            logger.warning(f"Failed to base64-encode image stream: {e}")
             return None
         finally:
             file_stream.seek(cur_pos)
